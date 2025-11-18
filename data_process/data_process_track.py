@@ -39,6 +39,8 @@ def filter_track(track_path, pcd_path, mask_path, frame_num, num_cam):
     with open(f"{mask_path}/processed_masks.pkl", "rb") as f:
         processed_masks = pickle.load(f)
 
+    h, w = processed_masks[0][0]["object"].shape
+
     # Filter out the points not valid in the first frame
     object_points = []
     object_colors = []
@@ -51,6 +53,9 @@ def filter_track(track_path, pcd_path, mask_path, frame_num, num_cam):
         # Filter out the track data
         tracks = current_track_data["tracks"]
         tracks = np.round(tracks).astype(int)
+        tracks[tracks < 0] = 0
+        tracks[tracks[:, :, 0] >= h, 0] = h - 1
+        tracks[tracks[:, :, 1] >= w, 1] = w - 1
         visibility = current_track_data["visibility"]
         assert tracks.shape[0] == frame_num
         num_points = np.shape(tracks)[1]
@@ -96,19 +101,24 @@ def filter_track(track_path, pcd_path, mask_path, frame_num, num_cam):
         # Get the track point cloud
         track_points = np.zeros((frame_num, num_points, 3))
         track_colors = np.zeros((frame_num, num_points, 3))
-        for frame_idx in range(frame_num):
-            data = np.load(f"{pcd_path}/{frame_idx}.npz")
-            points = data["points"]
-            colors = data["colors"]
+        try:
+            for frame_idx in range(frame_num):
+                data = np.load(f"{pcd_path}/{frame_idx}.npz")
+                points = data["points"]
+                colors = data["colors"]
 
-            track_points[frame_idx][np.where(visibility[frame_idx])] = points[i][
-                tracks[frame_idx, np.where(visibility[frame_idx])[0], 0],
-                tracks[frame_idx, np.where(visibility[frame_idx])[0], 1],
-            ]
-            track_colors[frame_idx][np.where(visibility[frame_idx])] = colors[i][
-                tracks[frame_idx, np.where(visibility[frame_idx])[0], 0],
-                tracks[frame_idx, np.where(visibility[frame_idx])[0], 1],
-            ]
+                track_points[frame_idx][np.where(visibility[frame_idx])] = points[i][
+                    tracks[frame_idx, np.where(visibility[frame_idx])[0], 0],
+                    tracks[frame_idx, np.where(visibility[frame_idx])[0], 1],
+                ]
+                track_colors[frame_idx][np.where(visibility[frame_idx])] = colors[i][
+                    tracks[frame_idx, np.where(visibility[frame_idx])[0], 0],
+                    tracks[frame_idx, np.where(visibility[frame_idx])[0], 1],
+                ]
+        except:
+            import pdb
+            pdb.set_trace()
+            print("ERROR")
 
         object_points.append(track_points[:, np.where(track_object_idx)[0], :])
         object_colors.append(track_colors[:, np.where(track_object_idx)[0], :])
@@ -331,7 +341,9 @@ def get_final_track_data(track_data, controller_threhsold=0.01):
     mask = track_data["controller_mask"]
 
     new_controller_points = controller_points[:, np.where(mask)[0], :]
-    assert len(new_controller_points[0]) >= 30
+    NUM_CONTTOLLER_POINT = 30
+    print(f"CONTROLLER POINT NUM {len(new_controller_points[0])}")
+    assert len(new_controller_points[0]) >= NUM_CONTTOLLER_POINT
     # Do farthest point sampling on the valid controller points to select the final controller points
     valid_indices = np.arange(len(new_controller_points[0]))
     points_map = {}
@@ -342,7 +354,7 @@ def get_final_track_data(track_data, controller_threhsold=0.01):
     sample_points = np.array(sample_points)
     sample_pcd = o3d.geometry.PointCloud()
     sample_pcd.points = o3d.utility.Vector3dVector(sample_points)
-    fps_pcd = sample_pcd.farthest_point_down_sample(30)
+    fps_pcd = sample_pcd.farthest_point_down_sample(NUM_CONTTOLLER_POINT)
     final_indices = []
     for point in fps_pcd.points:
         final_indices.append(points_map[tuple(point)])

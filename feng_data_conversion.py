@@ -83,7 +83,7 @@ def main():
     parser.add_argument(
         "--input_path",
         type=str,
-        default="feng_data_collect/feng_rope_v6_0002",
+        default="feng_data_collect/feng_sloth_0907_0001_long",
         help="Path to feng's data directory",
     )
     parser.add_argument(
@@ -92,14 +92,14 @@ def main():
     parser.add_argument(
         "--case_name",
         type=str,
-        default="feng_rope_v6_0002",
+        default="feng_sloth_0907_0001_long",
         help="Name for the converted case",
     )
     parser.add_argument(
-        "--start_frame", type=int, default=169, help="Start frame index"
+        "--start_frame", type=int, default=19, help="Start frame index"
     )
     parser.add_argument(
-        "--end_frame", type=int, default=1000, help="End frame index (-1 for all frames)"
+        "--end_frame", type=int, default=150, help="End frame index (-1 for all frames)"
     )
 
     args = parser.parse_args()
@@ -131,8 +131,10 @@ def main():
     exist_dir(os.path.join(output_case_path, "color"))
     exist_dir(os.path.join(output_case_path, "depth"))
 
-    # Camera mapping: feng camera 1 -> our camera 0, feng camera 0 -> our camera 1, feng camera 2 -> our camera 2
-    camera_mapping = {1: 0, 0: 1, 2: 2}
+    # # Camera mapping: feng camera 1 -> our camera 0, feng camera 0 -> our camera 1, feng camera 2 -> our camera 2
+    # camera_mapping = {1: 0, 0: 1, 2: 2}
+    # New data setting
+    camera_mapping = {0: 0, 1: 1, 2: 2}
 
     for our_cam_id in range(3):
         exist_dir(os.path.join(output_case_path, "color", str(our_cam_id)))

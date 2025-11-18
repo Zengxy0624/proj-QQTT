@@ -112,3 +112,15 @@ mask_bool = mask_img > 0
 ref_img[mask_bool, :3] = raw_img[mask_bool]
 ref_img[:, :, 3] = mask_bool.astype(np.uint8) * 255
 cv2.imwrite(output_path, ref_img)
+
+
+# ys, xs = np.where(mask_img > 0)
+# y_min, y_max = ys.min(), ys.max()
+# x_min, x_max = xs.min(), xs.max()
+
+# ref_img = np.zeros((h, w, 4), dtype=np.uint8)
+
+# ref_img[y_min:y_max+1, x_min:x_max+1, :3] = raw_img[y_min:y_max+1, x_min:x_max+1]
+# ref_img[y_min:y_max+1, x_min:x_max+1, 3] = 255
+
+# cv2.imwrite(output_path, ref_img)
