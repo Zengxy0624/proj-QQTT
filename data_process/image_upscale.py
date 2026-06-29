@@ -27,6 +27,8 @@ pipeline = StableDiffusionUpscalePipeline.from_pretrained(
     model_id, torch_dtype=torch.float16
 )
 pipeline = pipeline.to("cuda")
+# Large object crops upscale to ~2500px; VAE decode then OOMs on 24GB. Tile it.
+pipeline.enable_vae_tiling()
 
 # let's download an  image
 low_res_img = Image.open(img_path).convert("RGB")

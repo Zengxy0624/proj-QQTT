@@ -10,13 +10,13 @@ parser = ArgumentParser()
 parser.add_argument(
     "--base_path",
     type=str,
-    default="/home/hanxiao/Desktop/Research/proj-qqtt/proj-QQTT/past_data_collect/different_types",
+    default="data_collect",
 )
 parser.add_argument("--case_name", type=str)
 parser.add_argument(
     "--output_path",
     type=str,
-    default="/home/hanxiao/Desktop/Research/proj-qqtt/proj-QQTT/data/different_types",
+    default="data/different_types",
 )
 parser.add_argument("--start", type=int)
 parser.add_argument("--end", type=int)

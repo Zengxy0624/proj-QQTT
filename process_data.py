@@ -5,11 +5,16 @@ import logging
 import json
 import glob
 
+# Open3D rendering (data_process_pcd.py / data_process_mask.py) needs a display; the child steps run
+# via os.system and inherit this. Default to :0 when headless (ssh/tmux), respect an existing DISPLAY.
+if not os.environ.get("DISPLAY"):
+    os.environ["DISPLAY"] = ":0"
+
 parser = ArgumentParser()
 parser.add_argument(
     "--base_path",
     type=str,
-    default="/home/hanxiao/Desktop/Research/proj-qqtt/proj-QQTT/data/different_types",
+    default="data/different_types",
 )
 parser.add_argument("--case_name", type=str, required=True)
 # The category of the object used for segmentation
@@ -90,8 +95,11 @@ if PROCESS_SEG:
 
 
 if PROCESS_SHAPE_PRIOR and SHAPE_PRIOR:
+    # Shape prior must use the top-down camera (cam2). cam0/cam1 are shallow side
+    # angles that make TRELLIS fuse the spread limbs into a blob. Mirror align.py (cam_idx=2).
+    shape_cam = 2
     # Get the mask path for the image
-    with open(f"{base_path}/{case_name}/mask/mask_info_{0}.json", "r") as f:
+    with open(f"{base_path}/{case_name}/mask/mask_info_{shape_cam}.json", "r") as f:
         data = json.load(f)
     obj_idx = None
     for key, value in data.items():
@@ -99,13 +107,13 @@ if PROCESS_SHAPE_PRIOR and SHAPE_PRIOR:
             if obj_idx is not None:
                 raise ValueError("More than one object detected.")
             obj_idx = int(key)
-    mask_path = f"{base_path}/{case_name}/mask/0/{obj_idx}/0.png"
+    mask_path = f"{base_path}/{case_name}/mask/{shape_cam}/{obj_idx}/0.png"
 
     existDir(f"{base_path}/{case_name}/shape")
     # Get the high-resolution of the image to prepare for the trellis generation
     with Timer("Image Upscale"):
         os.system(
-            f"python ./data_process/image_upscale.py --img_path {base_path}/{case_name}/color/0/0.png --mask_path {mask_path} --output_path {base_path}/{case_name}/shape/high_resolution.png --category {category}"
+            f"python ./data_process/image_upscale.py --img_path {base_path}/{case_name}/color/{shape_cam}/0.png --mask_path {mask_path} --output_path {base_path}/{case_name}/shape/high_resolution.png --category {category}"
         )
 
     # Get the masked image of the object
