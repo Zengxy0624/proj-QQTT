@@ -7,6 +7,7 @@ import cv2
 import json
 import torch
 import os
+from utils.h264_writer import H264VideoWriter
 from utils.align_util import (
     render_multi_images,
     render_image,
@@ -526,9 +527,8 @@ if __name__ == "__main__":
         vis.create_window(visible=False)
         dummy_frame = np.asarray(vis.capture_screen_float_buffer(do_render=True))
         height, width, _ = dummy_frame.shape
-        fourcc = cv2.VideoWriter_fourcc(*"avc1")
-        video_writer = cv2.VideoWriter(
-            f"{output_dir}/final_matching.mp4", fourcc, 30, (width, height)
+        video_writer = H264VideoWriter(
+            f"{output_dir}/final_matching.mp4", 30, width, height
         )
         # final_mesh_world.compute_vertex_normals()
         # final_mesh_world.translate([0, 0, 0.2])

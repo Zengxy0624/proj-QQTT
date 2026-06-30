@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import trimesh
 import cv2
 from utils.align_util import as_mesh
+from utils.h264_writer import H264VideoWriter
 from argparse import ArgumentParser
 
 parser = ArgumentParser()
@@ -120,9 +121,8 @@ def process_unique_points(track_data):
     vis.create_window(visible=False)
     dummy_frame = np.asarray(vis.capture_screen_float_buffer(do_render=True))
     height, width, _ = dummy_frame.shape
-    fourcc = cv2.VideoWriter_fourcc(*"avc1")
-    video_writer = cv2.VideoWriter(
-        f"{base_path}/{case_name}/final_pcd.mp4", fourcc, 30, (width, height)
+    video_writer = H264VideoWriter(
+        f"{base_path}/{case_name}/final_pcd.mp4", 30, width, height
     )
 
     vis.add_geometry(all_pcd)
@@ -169,9 +169,8 @@ def visualize_track(track_data):
     vis.create_window(visible=False)
     dummy_frame = np.asarray(vis.capture_screen_float_buffer(do_render=True))
     height, width, _ = dummy_frame.shape
-    fourcc = cv2.VideoWriter_fourcc(*"avc1")
-    video_writer = cv2.VideoWriter(
-        f"{base_path}/{case_name}/final_data.mp4", fourcc, 30, (width, height)
+    video_writer = H264VideoWriter(
+        f"{base_path}/{case_name}/final_data.mp4", 30, width, height
     )
 
     controller_meshes = []
