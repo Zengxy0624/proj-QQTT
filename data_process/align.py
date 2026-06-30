@@ -438,7 +438,11 @@ if __name__ == "__main__":
         mask = processed_masks[0][i]["object"]
         obs_points.append(points[mask])
         obs_colors.append(colors[mask])
-        if i == 0:
+        # select_point looks up the 2D matches (taken on cam_idx) in this camera's
+        # cloud, so it MUST be the same camera as the matching. cam_idx switched 0->2
+        # for the top-down shape prior; this was left at cam0 -> mesh keypoints got
+        # paired with wrong object points (~24cm off) and ARAP tore a spike.
+        if i == cam_idx:
             first_points = points
             first_mask = mask
 
