@@ -7,6 +7,11 @@ from .config import cfg
 import pyrender
 import trimesh
 
+try:  # repo root on path (training: train_warp/optimize_cma from proj-QQTT root)
+    from data_process.utils.h264_writer import H264VideoWriter
+except ImportError:  # data_process/ on path (run from there)
+    from utils.h264_writer import H264VideoWriter
+
 
 def visualize_pc(
     object_points,
@@ -68,8 +73,10 @@ def visualize_pc(
 
     # Initialize video writer if save_video is True
     if save_video:
-        fourcc = cv2.VideoWriter_fourcc(*"avc1")  # Codec for .mp4 file format
-        video_writer = cv2.VideoWriter(save_path, fourcc, FPS, (width, height))
+        # System ffmpeg/libx264 -> real H.264 (VS Code/browser playable) in any env;
+        # pip opencv-python (phystwin) lacks libx264 and its avc1 falls back to an
+        # absent hw encoder (h264_v4l2m2m) and fails.
+        video_writer = H264VideoWriter(save_path, FPS, width, height)
 
     if controller_points is not None:
         controller_meshes = []
