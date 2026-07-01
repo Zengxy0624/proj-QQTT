@@ -1,4 +1,5 @@
 import glob
+import os
 import pickle
 import json
 import torch
@@ -12,8 +13,8 @@ from pytorch3d.loss import chamfer_distance
 # prediction_dir = (
 #     "/home/hanxiao/Desktop/Research/proj-qqtt/proj-QQTT/experiments"
 # )
-prediction_dir = "/home/hanxiao/Desktop/Research/proj-qqtt/proj-QQTT/exp_results/GNN_original/different_types_gnn"
-base_path = "/home/hanxiao/Desktop/Research/proj-qqtt/proj-QQTT/data/different_types"
+prediction_dir = "experiments"
+base_path = "data/different_types"
 output_file = "results/final_results_gnn_indomain.csv"
 
 
@@ -78,6 +79,7 @@ def evaluate_prediction(
 
 
 if __name__ == "__main__":
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
     file = open(output_file, mode="w", newline="", encoding="utf-8")
     writer = csv.writer(file)
 
@@ -95,7 +97,9 @@ if __name__ == "__main__":
 
     dir_names = glob.glob(f"{prediction_dir}/*")
     for dir_name in dir_names:
-        case_name = dir_name.split("/")[-1].split("-")[1]
+        if not os.path.exists(f"{dir_name}/inference.pkl"):
+            continue
+        case_name = dir_name.split("/")[-1]
         print(f"Processing {case_name}")
 
         # Read the trajectory data
@@ -154,5 +158,9 @@ if __name__ == "__main__":
                 results_test["chamfer_error"],
                 results_test["track_error"],
             ]
+        )
+        print(
+            f"  TRAIN chamfer {results_train['chamfer_error']*100:.2f}cm track {results_train['track_error']*100:.2f}cm"
+            f" | TEST chamfer {results_test['chamfer_error']*100:.2f}cm track {results_test['track_error']*100:.2f}cm"
         )
     file.close()

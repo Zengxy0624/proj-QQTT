@@ -22,7 +22,7 @@ def visualize_pc(
     visualize=True,
     save_video=False,
     save_path=None,
-    vis_cam_idx=0,
+    vis_cam_idx=2,
 ):
     # Deprecated function, use visualize_pc instead
     FPS = cfg.FPS
