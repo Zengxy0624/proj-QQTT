@@ -95,9 +95,10 @@ if PROCESS_SEG:
 
 
 if PROCESS_SHAPE_PRIOR and SHAPE_PRIOR:
-    # Shape prior must use the top-down camera (cam2). cam0/cam1 are shallow side
-    # angles that make TRELLIS fuse the spread limbs into a blob. Mirror align.py (cam_idx=2).
-    shape_cam = 2
+    # Shape prior must use the top-down camera, which is cam0 in this rig (see
+    # USE_SERIALS in camera_system.py). Side views make TRELLIS fuse the spread
+    # limbs into a blob. Mirror align.py (cam_idx=0).
+    shape_cam = 0
     # Get the mask path for the image
     with open(f"{base_path}/{case_name}/mask/mask_info_{shape_cam}.json", "r") as f:
         data = json.load(f)

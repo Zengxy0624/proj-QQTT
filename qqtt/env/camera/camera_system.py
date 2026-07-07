@@ -17,16 +17,42 @@ def exist_dir(dir):
         os.makedirs(dir)
 
 
+# Which physical cameras to use when more D455s are plugged in than we want to record.
+# 4 are connected; we drop the old side camera 234222302088 (kept plugged, unused).
+# LIST ORDER defines the camera index (cam0 = first). cam0 MUST be the top-down camera,
+# because shape prior reads cam0 (align.py cam_idx=0, process_data.py shape_cam=0):
+#   135222250187 -> cam0 (top-down, shape-prior camera; the NEW camera)
+#   234322304496 -> cam1 (side)
+#   234322305206 -> cam2 (side)
+# Set use_serials=None to fall back to "use every connected camera".
+USE_SERIALS = ["135222250187", "234322304496", "234322305206"]
+
+
 class CameraSystem:
     def __init__(
-        self, WH=[848, 480], fps=30, num_cam=3, exposure=50, gain=60, white_balance=3800
+        self,
+        WH=[848, 480],
+        fps=30,
+        num_cam=3,
+        exposure=50,
+        gain=60,
+        white_balance=3800,
+        use_serials=USE_SERIALS,
     ):
         self.WH = WH
         self.fps = fps
 
-        self.serial_numbers = SingleRealsense.get_connected_devices_serial()
+        connected = SingleRealsense.get_connected_devices_serial()
+        if use_serials is not None:
+            missing = [s for s in use_serials if s not in connected]
+            assert not missing, (
+                f"Requested cameras not connected: {missing} (connected: {connected})"
+            )
+            self.serial_numbers = list(use_serials)
+        else:
+            self.serial_numbers = connected
         self.num_cam = len(self.serial_numbers)
-        assert self.num_cam == num_cam, f"Only {self.num_cam} cameras are connected."
+        assert self.num_cam == num_cam, f"Selected {self.num_cam} cameras, expected {num_cam}."
 
         self.shm_manager = SharedMemoryManager()
         self.shm_manager.start()
@@ -156,10 +182,13 @@ class CameraSystem:
     def calibrate(self, visualize=True):
         # Initialize the calibration board information
         dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_50)
+        # Board = the physical ChArUco we own (the xarm7_collect board):
+        # 7x5 squares, square 30mm, marker 22mm. squareLength sets the metric scale,
+        # so it MUST match the printed board. (Was 4x5/50mm/37mm upstream.)
         board = cv2.aruco.CharucoBoard(
-            (4, 5),
-            squareLength=0.05,
-            markerLength=0.037,
+            (7, 5),
+            squareLength=0.030,
+            markerLength=0.022,
             dictionary=dictionary,
         )
         # Get the intrinsic information from the realsense camera

@@ -266,7 +266,7 @@ def line_point_distance(p, points):
 if __name__ == "__main__":
     existDir(output_dir)
 
-    cam_idx = 2  # cam2 is the top-down view; cam0/cam1 are shallow side angles unfit for shape-prior matching
+    cam_idx = 0  # cam0 is the top-down view (shape-prior camera), matching upstream; sides are cam1/cam2
     img_path = f"{base_path}/{case_name}/color/{cam_idx}/0.png"
     mesh_path = f"{base_path}/{case_name}/shape/object.glb"
     # Get the mask index of the object
@@ -439,9 +439,9 @@ if __name__ == "__main__":
         obs_points.append(points[mask])
         obs_colors.append(colors[mask])
         # select_point looks up the 2D matches (taken on cam_idx) in this camera's
-        # cloud, so it MUST be the same camera as the matching. cam_idx switched 0->2
-        # for the top-down shape prior; this was left at cam0 -> mesh keypoints got
-        # paired with wrong object points (~24cm off) and ARAP tore a spike.
+        # cloud, so first_points MUST come from cam_idx, not a hardcoded cam0. If they
+        # differ, mesh keypoints get paired with the wrong object points (~24cm off)
+        # and ARAP tears a spike. (Equivalent to upstream's `i == 0` while cam_idx=0.)
         if i == cam_idx:
             first_points = points
             first_mask = mask

@@ -74,7 +74,7 @@ class SingleRealsense(mp.Process):
             examples=examples if transform is None
                 else transform(dict(examples)),
             get_max_k=get_max_k,
-            get_time_budget=0.2,
+            get_time_budget=1.0,  # was 0.2: too tight for the k=4 copy at 1280x720 -> TimeoutError
             put_desired_frequency=put_fps
         )
 
