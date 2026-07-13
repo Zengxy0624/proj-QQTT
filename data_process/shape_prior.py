@@ -18,6 +18,7 @@ parser.add_argument(
     type=str,
 )
 parser.add_argument("--output_dir", type=str)
+parser.add_argument("--seed", type=int, default=42)
 args = parser.parse_args()
 
 img_path = args.img_path
@@ -33,6 +34,7 @@ assert not np.all(np.array(final_im)[:, :, 3] == 255)
 # Run the pipeline
 outputs = pipeline.run(
     final_im,
+    seed=args.seed,
 )
 
 video_gs = render_utils.render_video(outputs["gaussian"][0])["color"]
