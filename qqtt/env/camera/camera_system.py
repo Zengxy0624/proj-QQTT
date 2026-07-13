@@ -75,6 +75,7 @@ class CameraSystem:
         time.sleep(3)
         self.recording = False
         self.end = False
+        self._last_button_t = 0.0
         self.listener = keyboard.Listener(on_press=self.on_press)
         self.listener.start()
         print("Camera system is ready.")
@@ -114,7 +115,17 @@ class CameraSystem:
 
     def on_press(self, key):
         try:
-            if key == keyboard.Key.space:
+            is_space = key == keyboard.Key.space
+            is_button = key == keyboard.Key.media_volume_up
+            if is_space or is_button:
+                # The Bluetooth button emits a burst of media_volume_up events
+                # per physical press (HID auto-repeat), so debounce it to a
+                # single toggle. Space stays one-event-per-press, untouched.
+                if is_button:
+                    now = time.time()
+                    if now - self._last_button_t < 0.4:
+                        return
+                    self._last_button_t = now
                 if self.recording == False:
                     self.recording = True
                     print("Start recording")
